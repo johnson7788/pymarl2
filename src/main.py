@@ -79,17 +79,18 @@ def parse_command(params, key, default):
 
 
 if __name__ == '__main__':
+    #  命令行的参数获取
     params = deepcopy(sys.argv)
-
-    # Get the defaults from default.yaml
+    # 默认值的获取default.yaml
     with open(os.path.join(os.path.dirname(__file__), "config", "default.yaml"), "r") as f:
         try:
             config_dict = yaml.load(f)
         except yaml.YAMLError as exc:
             assert False, "default.yaml error: {}".format(exc)
 
-    # Load algorithm and env base configs
+    # 加载算法和env基础配置, 如果params是stag_hunt，就会加载配置 src/config/envs/stag_hunt.yaml
     env_config = _get_config(params, "--env-config", "envs")
+    # 如果params中的算法参数是'--config=qmix_prey' ，就会加载src/config/algs/qmix_prey.yaml
     alg_config = _get_config(params, "--config", "algs")
     # config_dict = {**config_dict, **env_config, **alg_config}
     config_dict = recursive_dict_update(config_dict, env_config)

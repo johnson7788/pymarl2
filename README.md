@@ -1,9 +1,9 @@
 # RIIT
-Our open-source code for [RIIT: Rethinking the Importance of Implementation Tricks in Multi-AgentReinforcement Learning](https://arxiv.org/abs/2102.03479). We implement and standardize the hyperparameters of numerous QMIX variant algorithms that achieve SOTA.
+我们为[RIIT：重新思考多AgentReinforcement Learning中实施技巧的重要性](https://arxiv.org/abs/2102.03479)提供了开源的代码。
+我们实现了众多实现SOTA的QMIX变体算法的超参数，并对其进行了标准化。
 
 ## Python MARL framework
-
-PyMARL is [WhiRL](http://whirl.cs.ox.ac.uk)'s framework for deep multi-agent reinforcement learning and includes implementations of the following algorithms:
+PyMARL是[WhiRL](http://whirl.cs.ox.ac.uk)的深度多agent强化学习框架，包括以下算法的实现。
 
 Value-based Methods:
 
@@ -27,7 +27,7 @@ Actor Critic Methods:
 
 PyMARL is written in PyTorch and uses [SMAC](https://github.com/oxwhirl/smac) as its environment.
 
-## Installation instructions
+## 安装说明 
 
 Install Python packages
 ```shell
@@ -35,32 +35,33 @@ Install Python packages
 bash install_dependecies.sh
 ```
 
-Set up StarCraft II and SMAC:
+如果不用sc2环境可以不安装, 设置星际争霸II和SMAC： StarCraft Multi-Agent Challenge
 ```shell
 bash install_sc2.sh
 ```
 
-This will download SC2 into the 3rdparty folder and copy the maps necessary to run over.
+这将把StarCraft II下载到第三方文件夹，并复制必要的地图来运行。
 
-## Run an experiment 
+## 运行实验 
 
 ```shell
-# For SMAC
+# SMAC StarCraft Multi-Agent Challenge,  对于多agent的StarCraft
 python3 src/main.py --config=qmix --env-config=sc2 with env_args.map_name=corridor
 ```
 
 ```shell
-# For Cooperative Predator-Prey
+# 适用于合作捕食者-猎物： Cooperative Predator-Prey 
 python3 src/main.py --config=qmix_prey --env-config=stag_hunt with env_args.map_name=stag_hunt
 ```
 
-The config files act as defaults for an algorithm or environment. 
+配置文件作为一种算法或环境的默认值。
 
-They are all located in `src/config`.
-`--config` refers to the config files in `src/config/algs`
-`--env-config` refers to the config files in `src/config/envs`
+它们都位于`src/config`中。
+`--config`指的是`src/config/algs`中的配置文件。
+`--env-config`指的是`src/config/envs`中的配置文件。
 
-## Run parallel experiments:
+
+## 运行并行实验： 
 ```shell
 # bash run.sh config_name map_name_list (threads_num arg_list gpu_list experinments_num)
 bash run.sh qmix corridor 2 epsilon_anneal_time=500000 0,1 5
@@ -68,16 +69,16 @@ bash run.sh qmix corridor 2 epsilon_anneal_time=500000 0,1 5
 
 `xxx_list` is separated by `,`.
 
-All results will be stored in the `Results` folder and named with `map_name`.
+所有的结果将被存储在`Results`文件夹中，并以`map_name`命名。
 
-## Force all trainning processes to exit
+## 强制所有训练进程退出 
 
 ```shell
-# all python and game processes of current user will quit.
+# 当前用户的所有Python和游戏进程将退出。
 bash clean.sh
 ```
 
-## Some test results on Super Hard scenarios
+## 一些测试结果超级困难的游戏情景 
 ![](img/baselines2.png)
 
 ## Cite
