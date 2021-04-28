@@ -1,20 +1,20 @@
 # --- Defaults ---
 
-# --- pymarl options ---
-runner: "episode" # Runs 1 env for an episode
+# --- pymarl options, 这些参数有可能不环境和算法的重复配置覆盖掉 ---
+runner: "episode" # 运行1个env，如果是parallel是并发运行多个env
 mac: "basic_mac" # Basic controller
-env: "sc2" # Environment name
-env_args: {} # Arguments for the environment
-batch_size_run: 1 # Number of environments to run in parallel
-test_nepisode: 20 # Number of episodes to test for
-test_interval: 2000 # Test after {} timesteps have passed
-test_greedy: True # Use greedy evaluation (if False, will set epsilon floor to 0
-log_interval: 2000 # Log summary of stats after every {} timesteps
-runner_log_interval: 2000 # Log runner stats (not test stats) every {} timesteps
-learner_log_interval: 2000 # Log training stats every {} timesteps
-t_max: 10000 # Stop running after this many timesteps
-use_cuda: True # Use gpu by default unless it isn't available
-buffer_cpu_only: True # If true we won't keep all of the replay buffer in vram
+env: "sc2" # env的名字，sc2是星际争霸2, 'stag_hunt'是捕猎者游戏
+env_args: {} # env的一些参数
+batch_size_run: 1 # 并发运行的环境数量
+test_nepisode: 20 # 测试的episode量
+test_interval: 2000 # 多少个timeSteps之后开始测试
+test_greedy: True # 使用贪婪评估（如果是False，将epsilon设置为0)
+log_interval: 2000 # 每个{}时间步后记录统计数据日志
+runner_log_interval: 2000 #每个{}时间步来记录runner stats（不是测试统计数据）
+learner_log_interval: 2000 # 每个{} timesteps的记录训练统计信息
+t_max: 10000 # 在这个时间下停止运行
+use_cuda: True # 默认情况下使用GPU，除非它不可用
+buffer_cpu_only: True # 如果是True，我们就不会把所有的回放缓冲区都保留在vram中。
 
 # --- Logging options ---
 use_tensorboard: False # Log results to tensorboard

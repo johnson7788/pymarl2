@@ -5,7 +5,7 @@ import torch as th
 from utils.rl_utils import RunningMeanStd
 import numpy as np
 
-# This multi-agent controller shares parameters between agents
+# 此多multi-agent控制器共享agent之间的参数  This multi-agent controller shares parameters between agents
 class NMAC(BasicMAC):
     def __init__(self, scheme, groups, args):
         super(NMAC, self).__init__(scheme, groups, args)

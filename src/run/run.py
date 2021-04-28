@@ -23,25 +23,36 @@ def get_agent_own_state_size(env_args):
     return  4 + sc_env.shield_bits_ally + sc_env.unit_type_bits
 
 def run(_run, _config, _log):
-
-    # check args sanity
+    """
+    运行，被main函数调用过来
+    :param _run:
+    :type _run:
+    :param _config:
+    :type _config:
+    :param _log:
+    :type _log:
+    :return:
+    :rtype:
+    """
+    # 更改一些config中的默认配置，例如cuda，batch等
     _config = args_sanity_check(_config, _log)
-
+    # 改成Namespace范围的参数
     args = SN(**_config)
     args.device = "cuda" if args.use_cuda else "cpu"
 
-    # setup loggers
+    #配置日志
     logger = Logger(_log)
 
-    _log.info("Experiment Parameters:")
+    _log.info("打印实验参数： ")
     experiment_params = pprint.pformat(_config,
                                        indent=4,
                                        width=1)
     _log.info("\n\n" + experiment_params + "\n")
 
-    # configure tensorboard logger
+    # 配置Tensorboard Logger ， eg: 'qmix_env=8_adam_td_lambda__2021-04-28_09-40-29'
     unique_token = "{}__{}".format(args.name, datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
     args.unique_token = unique_token
+    # 是否使用tensorboard，使用的话，就配置下存储信息
     if args.use_tensorboard:
         tb_logs_direc = os.path.join(dirname(dirname(abspath(__file__))), "results", "tb_logs")
         tb_exp_direc = os.path.join(tb_logs_direc, "{}").format(unique_token)
@@ -50,7 +61,7 @@ def run(_run, _config, _log):
     # sacred is on by default
     logger.setup_sacred(_run)
 
-    # Run and train
+    # 运行和训练
     run_sequential(args=args, logger=logger)
 
     # Clean up after finishing
@@ -80,11 +91,19 @@ def evaluate_sequential(args, runner):
     runner.close_env()
 
 def run_sequential(args, logger):
-
-    # Init runner so we can get env info
+    """
+    真正运行函数
+    :param args:
+    :type args:
+    :param logger:
+    :type logger:
+    :return:
+    :rtype:
+    """
+    # init runner所以我们可以得到env info, 运行哪个runner，是src/runners/parallel_runner.py中的ParallelRunner  还是episode_runner.py
     runner = r_REGISTRY[args.runner](args=args, logger=logger)
 
-    # Set up schemes and groups here
+    # 在此设置schemes和groups
     env_info = runner.get_env_info()
     args.n_agents = env_info["n_agents"]
     args.n_actions = env_info["n_actions"]
@@ -93,7 +112,7 @@ def run_sequential(args, logger):
     if getattr(args, 'agent_own_state_size', False):
         args.agent_own_state_size = get_agent_own_state_size(args.env_args)
 
-    # Default/Base scheme
+    # 自定义schema
     scheme = {
         "state": {"vshape": env_info["state_shape"]},
         "obs": {"vshape": env_info["obs_shape"], "group": "agents"},
@@ -109,17 +128,17 @@ def run_sequential(args, logger):
     preprocess = {
         "actions": ("actions_onehot", [OneHot(out_dim=args.n_actions)])
     }
-
+    # 重放buffer
     buffer = ReplayBuffer(scheme, groups, args.buffer_size, env_info["episode_limit"] + 1,
                           preprocess=preprocess,
                           device="cpu" if args.buffer_cpu_only else args.device)
-    # Setup multiagent controller here
+    # 在此设置多agent控制器,调用src/controllers/n_controller.py中的NMAC函数
     mac = mac_REGISTRY[args.mac](buffer.scheme, groups, args)
 
-    # Give runner the scheme
+    # 给runner这个schema
     runner.setup(scheme=scheme, groups=groups, preprocess=preprocess, mac=mac)
 
-    # Learner
+    # Learner, 调用src/learners/nq_learner.py下的NQLearner
     learner = le_REGISTRY[args.learner](mac, buffer.scheme, logger, args)
 
     if args.use_cuda:
@@ -226,12 +245,12 @@ def run_sequential(args, logger):
 
 
 def args_sanity_check(config, _log):
-
+    # 更改一些默认配置
     # set CUDA flags
     # config["use_cuda"] = True # Use cuda whenever possible!
     if config["use_cuda"] and not th.cuda.is_available():
         config["use_cuda"] = False
-        _log.warning("CUDA flag use_cuda was switched OFF automatically because no CUDA devices are available!")
+        _log.warning("CUDA flag use_cuda被自动关闭，因为没有CUDA设备可用。")
 
     if config["test_nepisode"] < config["batch_size_run"]:
         config["test_nepisode"] = config["batch_size_run"]

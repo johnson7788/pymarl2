@@ -9,13 +9,13 @@ import torch as th
 # Based (very) heavily on SubprocVecEnv from OpenAI Baselines
 # https://github.com/openai/baselines/blob/master/baselines/common/vec_env/subproc_vec_env.py
 class ParallelRunner:
-
+    # 并发运行
     def __init__(self, args, logger):
         self.args = args
         self.logger = logger
         self.batch_size = self.args.batch_size_run
 
-        # Make subprocesses for the envs
+        # 为envs制作子进程
         self.parent_conns, self.worker_conns = zip(*[Pipe() for _ in range(self.batch_size)])
         env_fn = env_REGISTRY[self.args.env]
         self.ps = []

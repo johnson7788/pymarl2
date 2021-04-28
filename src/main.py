@@ -12,10 +12,10 @@ from utils.logging import get_logger
 import yaml
 
 from run import REGISTRY as run_REGISTRY
-
-SETTINGS['CAPTURE_MODE'] = "fd" # set to "no" if you want to see stdout/stderr in console
+# 如果您想在控制台中看到stdout / stderr，则设置为“no”，保存到文件设置为 "fd"
+SETTINGS['CAPTURE_MODE'] = "no"
 logger = get_logger()
-
+# 初始化一个管理配置的应用ex
 ex = Experiment("pymarl")
 ex.logger = logger
 ex.captured_out_filter = apply_backspaces_and_linefeeds
@@ -25,16 +25,39 @@ results_path = join(dirname(dirname(abspath(__file__))), "results")
 
 @ex.main
 def my_main(_run, _config, _log):
-    # Setting the random seed throughout the modules
+    """
+   主函数
+    :param _run:  scare 管理的_run
+    :type _run:
+    :param _config:scare 管理的_config
+    :type _config:
+    :param _log:
+    :type _log:scare 管理的_log
+    :return:
+    :rtype:
+    """
+    # 拷贝出一份配置
     config = config_copy(_config)
+    # 在整个module中设置随机种子
     np.random.seed(config["seed"])
     th.manual_seed(config["seed"])
     config['env_args']['seed'] = config["seed"]
     
-    # run
+    #调用run/run.py 中的run函数
     run_REGISTRY[_config['run']](_run, config, _log)
 
 def _get_config(params, arg_name, subfolder):
+    """
+    从给定命令行参数params找到config，加载环境或算法的配置
+    :param params:
+    :type params:
+    :param arg_name:  命令行参数params的对应的 'env_args.map_name = stag_hunt'
+    :type arg_name:
+    :param subfolder: 配置文件的目录
+    :type subfolder:
+    :return:
+    :rtype:
+    """
     config_name = None
     for _i, _v in enumerate(params):
         if _v.split("=")[0] == arg_name:
@@ -52,6 +75,15 @@ def _get_config(params, arg_name, subfolder):
 
 
 def recursive_dict_update(d, u):
+    """
+    把字典u中的内容合并到字典d中
+    :param d:  配置信息，字典d
+    :type d:
+    :param u:  配置信息，字典u
+    :type u:
+    :return: 合并后的字典
+    :rtype:
+    """
     for k, v in u.items():
         if isinstance(v, collections.Mapping):
             d[k] = recursive_dict_update(d.get(k, {}), v)
@@ -61,6 +93,13 @@ def recursive_dict_update(d, u):
 
 
 def config_copy(config):
+    """
+    copy出一份给定的config
+    :param config:
+    :type config:
+    :return:返回拷贝的config
+    :rtype:
+    """
     if isinstance(config, dict):
         return {k: config_copy(v) for k, v in config.items()}
     elif isinstance(config, list):
@@ -70,6 +109,17 @@ def config_copy(config):
 
 
 def parse_command(params, key, default):
+    """
+
+    :param params:
+    :type params:
+    :param key:
+    :type key:
+    :param default:
+    :type default:
+    :return:
+    :rtype:
+    """
     result = default
     for _i, _v in enumerate(params):
         if _v.split("=")[0].strip() == key:
@@ -93,20 +143,22 @@ if __name__ == '__main__':
     # 如果params中的算法参数是'--config=qmix_prey' ，就会加载src/config/algs/qmix_prey.yaml
     alg_config = _get_config(params, "--config", "algs")
     # config_dict = {**config_dict, **env_config, **alg_config}
+    # 合并env配置到我们的主要配置中 config_dict
     config_dict = recursive_dict_update(config_dict, env_config)
+    #  合并算法配置到我们主要配置中config_dict
     config_dict = recursive_dict_update(config_dict, alg_config)
 
-    # now add all the config to sacred
+    # 现在将所有配置添加到sacred, 配置管理器ex
     ex.add_config(config_dict)
 
-    # Save to disk by default for sacred
+    # 将默认为Sacred保存到磁盘
     map_name = parse_command(params, "env_args.map_name", config_dict['env_args']['map_name'])
     algo_name = parse_command(params, "name", config_dict['name']) 
     file_obs_path = join(results_path, "sacred", map_name, algo_name)
     
-    logger.info("Saving to FileStorageObserver in {}.".format(file_obs_path))
+    logger.info("保存配置文件 FileStorageObserver 到 {}.".format(file_obs_path))
     ex.observers.append(FileStorageObserver.create(file_obs_path))
-
+    # 开始运行main函数 my_main
     ex.run_commandline(params)
 
     # flush
