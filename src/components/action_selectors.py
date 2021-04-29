@@ -182,7 +182,8 @@ class EpsilonGreedyActionSelector():
 
         # 从选择中排除的mask操作
         masked_q_values = agent_inputs.clone()
-        masked_q_values[avail_actions == 0] = -float("inf")  # should never be selected!
+        # 永远不应该被选中！
+        masked_q_values[avail_actions == 0] = -float("inf")
         
         random_numbers = th.rand_like(agent_inputs[:, :, 0])
         pick_random = (random_numbers < self.epsilon).long()
