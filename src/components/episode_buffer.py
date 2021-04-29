@@ -85,6 +85,20 @@ class EpisodeBatch:
         self.device = device
 
     def update(self, data, bs=slice(None), ts=slice(None), mark_filled=True):
+        """
+
+        :param data:
+        :type data:
+        :param bs: 一个batch的agents 索引, eg: [0, 1, 2, 3, 4, 5, 6, 7]
+        :type bs: list
+        :param ts: timestep, 时间步
+        :type ts: int eg: 0
+        :param mark_filled:
+        :type mark_filled:
+        :return:
+        :rtype:
+        """
+        # slices: eg: [[0, 1, 2, 3, 4, 5, 6, 7], slice(0, 1, None)]
         slices = self._parse_slices((bs, ts))
         for k, v in data.items():
             if k in self.data.transition_data:

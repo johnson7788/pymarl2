@@ -137,18 +137,18 @@ class ParallelRunner:
                 "reward": [],
                 "terminated": []
             }
-            # Data for the next step we will insert in order to select an action
+            # 下一步我们将插入数据，以便选择一个action
             pre_transition_data = {
                 "state": [],
                 "avail_actions": [],
                 "obs": []
             }
 
-            # Receive data back for each unterminated env
+            #为每个未结束的env接收数据
             for idx, parent_conn in enumerate(self.parent_conns):
                 if not terminated[idx]:
                     data = parent_conn.recv()
-                    # Remaining data for this current timestep
+                    # 当前时间的剩余数据
                     post_transition_data["reward"].append((data["reward"],))
 
                     episode_returns[idx] += data["reward"]
