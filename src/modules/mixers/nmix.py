@@ -6,7 +6,7 @@ import numpy as np
 class Mixer(nn.Module):
     def __init__(self, args, abs=True):
         super(Mixer, self).__init__()
-
+        # 模型
         self.args = args
         self.abs = abs
         self.n_agents = args.n_agents

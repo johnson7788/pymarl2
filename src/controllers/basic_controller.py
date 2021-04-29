@@ -1,6 +1,6 @@
 from modules.agents import REGISTRY as agent_REGISTRY
 from components.action_selectors import REGISTRY as action_REGISTRY
-import torch as th
+import torch
 
 
 # This multi-agent controller shares parameters between agents
@@ -38,7 +38,7 @@ class BasicMAC:
                 reshaped_avail_actions = avail_actions.reshape(ep_batch.batch_size * self.n_agents, -1)
                 agent_outs[reshaped_avail_actions == 0] = -1e10
 
-            agent_outs = th.nn.functional.softmax(agent_outs, dim=-1)
+            agent_outs = torch.nn.functional.softmax(agent_outs, dim=-1)
             
         return agent_outs.view(ep_batch.batch_size, self.n_agents, -1)
 
@@ -57,29 +57,29 @@ class BasicMAC:
         self.agent.cuda()
 
     def save_models(self, path):
-        th.save(self.agent.state_dict(), "{}/agent.th".format(path))
+        torch.save(self.agent.state_dict(), "{}/agent.th".format(path))
 
     def load_models(self, path):
-        self.agent.load_state_dict(th.load("{}/agent.th".format(path), map_location=lambda storage, loc: storage))
+        self.agent.load_state_dict(torch.load("{}/agent.th".format(path), map_location=lambda storage, loc: storage))
 
     def _build_agents(self, input_shape):
         self.agent = agent_REGISTRY[self.args.agent](input_shape, self.args)
 
     def _build_inputs(self, batch, t):
-        # Assumes homogenous agents with flat observations.
-        # Other MACs might want to e.g. delegate building inputs to each agent
+        # 假设具有flat观测的homogenous agents。
+        # 其他MAC可能希望，例如building输入给每个agent
         bs = batch.batch_size
         inputs = []
         inputs.append(batch["obs"][:, t])  # b1av
         if self.args.obs_last_action:
             if t == 0:
-                inputs.append(th.zeros_like(batch["actions_onehot"][:, t]))
+                inputs.append(torch.zeros_like(batch["actions_onehot"][:, t]))
             else:
                 inputs.append(batch["actions_onehot"][:, t-1])
         if self.args.obs_agent_id:
-            inputs.append(th.eye(self.n_agents, device=batch.device).unsqueeze(0).expand(bs, -1, -1))
-
-        inputs = th.cat([x.reshape(bs, self.n_agents, -1) for x in inputs], dim=-1)
+            inputs.append(torch.eye(self.n_agents, device=batch.device).unsqueeze(0).expand(bs, -1, -1))
+        # 拼接输入,  shape: torch.Size([8, 8, 81])
+        inputs = torch.cat([x.reshape(bs, self.n_agents, -1) for x in inputs], dim=-1)
         return inputs
 
     def _get_input_shape(self, scheme):

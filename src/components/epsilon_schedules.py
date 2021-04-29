@@ -19,6 +19,13 @@ class DecayThenFlatSchedule():
             self.exp_scaling = (-1) * self.time_length / np.log(self.finish) if self.finish > 0 else 1
 
     def eval(self, T):
+        """
+        根据第多少个step，计算epsilon的decay后的值
+        :param T:
+        :type T: int
+        :return: epsilon的值
+        :rtype: float
+        """
         if self.decay in ["linear"]:
             return max(self.finish, self.start - self.delta * T)
         elif self.decay in ["exp"]:

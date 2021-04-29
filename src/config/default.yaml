@@ -2,7 +2,7 @@
 
 # --- pymarl options, 这些参数有可能不环境和算法的重复配置覆盖掉 ---
 runner: "episode" # 运行1个env，如果是parallel是并发运行多个env
-mac: "basic_mac" # Basic controller
+mac: "basic_mac" # 基本控制器
 env: "sc2" # env的名字，sc2是星际争霸2, 'stag_hunt'是捕猎者游戏
 env_args: {} # env的一些参数
 batch_size_run: 1 # 并发运行的环境数量
@@ -16,31 +16,31 @@ t_max: 10000 # 在这个时间下停止运行
 use_cuda: True # 默认情况下使用GPU，除非它不可用
 buffer_cpu_only: True # 如果是True，我们就不会把所有的回放缓冲区都保留在vram中。
 
-# --- Logging options ---
-use_tensorboard: False # Log results to tensorboard
-save_model: False # Save the models to disk
-save_model_interval: 2000000 # Save models after this many timesteps
-checkpoint_path: "" # Load a checkpoint from this path
-evaluate: False # Evaluate model for test_nepisode episodes and quit (no training)
-load_step: 0 # Load model trained on this many timesteps (0 if choose max possible)
-save_replay: False # Saving the replay of the model loaded from checkpoint_path
-local_results_path: "results" # Path for local results
+# --- 日志选项 ---
+use_tensorboard: False # 日志结果到Tensorboard
+save_model: False # 是否将模型保存到磁盘
+save_model_interval: 2000000 # 多少个时间步后保存模型
+checkpoint_path: "" # 从此路径加载checkpoint
+evaluate: False # 评估测试test_nepisode 个episode，然后退出
+load_step: 0 # 加载在这个时间段内训练的模型（如果选择最大可能，则为0)
+save_replay: False # 保存从checkpoint_path加载的模型的重放
+local_results_path: "results" # 本地存储results的路径
 
-# --- RL hyperparameters ---
+# --- 强化学习超参数 ---
 gamma: 0.99
-batch_size: 32 # Number of episodes to train on
-buffer_size: 32 # Size of the replay buffer
-lr: 0.0005 # Learning rate for agents
-critic_lr: 0.0005 # Learning rate for critics
+batch_size: 32 # 训练的episode数
+buffer_size: 32 # 重放缓冲区的大小
+lr: 0.0005 # agent学习率
+critic_lr: 0.0005 # critic的学习率
 optim_alpha: 0.99 # RMSProp alpha
 optim_eps: 0.00001 # RMSProp epsilon
-grad_norm_clip: 10 # Reduce magnitude of gradients above this L2 norm
+grad_norm_clip: 10 # 减少该L2 norm 以上的梯度幅度
 
 # --- Agent parameters ---
-agent: "rnn" # Default rnn agent
-rnn_hidden_dim: 64 # Size of hidden state for default rnn agent
-obs_agent_id: True # Include the agent's one_hot id in the observation
-obs_last_action: True # Include the agent's last action (one_hot) in the observation
+agent: "rnn" # 默认rnn的agent
+rnn_hidden_dim: 64 # 默认RNN agent的隐藏状态大小
+obs_agent_id: True # 在观察中包含agent的one_hot ID
+obs_last_action: True # 在观察中包括agent的最后一个动作（one_hot）
 
 # --- Experiment running params ---
 repeat_id: 1

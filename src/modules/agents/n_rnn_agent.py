@@ -20,8 +20,17 @@ class NRNNAgent(nn.Module):
         return self.fc1.weight.new(1, self.args.rnn_hidden_dim).zero_()
 
     def forward(self, inputs, hidden_state):
+        """
+
+        :param inputs:
+        :type inputs:
+        :param hidden_state:
+        :type hidden_state:
+        :return:
+        :rtype:
+        """
+        # 获取输入的形状，b: batch_size ,a: agent_num, e:???
         b, a, e = inputs.size()
-        
         x = F.relu(self.fc1(inputs.view(-1, e)), inplace=True)
         h_in = hidden_state.reshape(-1, self.args.rnn_hidden_dim)
         h = self.rnn(x, h_in)

@@ -5,12 +5,12 @@ from types import SimpleNamespace as SN
 
 class EpisodeBatch:
     def __init__(self,
-                 scheme,
-                 groups,
-                 batch_size,
-                 max_seq_length,
+                 scheme,    # eg: {'state': {'vshape': 300}, 'obs': {'vshape': 75, 'group': 'agents'}, 'actions': {'vshape': (1,), 'group': 'agents', 'dtype': torch.int64}, 'avail_actions': {'vshape': (6,), 'group': 'agents', 'dtype': torch.int32}, 'probs': {'vshape': (6,), 'group': 'agents', 'dtype': torch.float32}, 'reward': {'vshape': (1,)}, 'terminated': {'vshape': (1,), 'dtype': torch.uint8}}
+                 groups,    # eg: {'agents': 8}
+                 batch_size,   # eg: 8
+                 max_seq_length,   #eg: 201
                  data=None,
-                 preprocess=None,
+                 preprocess=None,   #eg: ('actions_onehot', [<components.transforms.OneHot object at 0x7f81ffb8cc40>])
                  device="cpu"):
         self.scheme = scheme.copy()
         self.groups = groups

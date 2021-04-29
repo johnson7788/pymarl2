@@ -14,7 +14,7 @@ from utils.th_utils import get_parameters_num
 class NQLearner:
     def __init__(self, mac, scheme, logger, args):
         self.args = args
-        self.mac = mac
+        self.mac = mac   # 控制器
         self.logger = logger
         
         self.last_target_update_episode = 0
@@ -28,21 +28,21 @@ class NQLearner:
         elif args.mixer == "qmix":
             self.mixer = Mixer(args)
         else:
-            raise "mixer error"
+            raise Exception("mixer error")
         self.target_mixer = copy.deepcopy(self.mixer)
         self.params += list(self.mixer.parameters())
 
-        print('Mixer Size: ')
+        print('Mixer的参数量为: ', end='')
         print(get_parameters_num(self.mixer.parameters()))
 
         if self.args.optimizer == 'adam':
             self.optimiser = Adam(params=self.params,  lr=args.lr)
         else:
             self.optimiser = RMSprop(params=self.params, lr=args.lr, alpha=args.optim_alpha, eps=args.optim_eps)
-
-        # a little wasteful to deepcopy (e.g. duplicates action selector), but should work for any MAC
+        # 深度复制有点浪费（例如重复动作选择器），但对任何MAC都应该有效。
+        #
         self.target_mac = copy.deepcopy(mac)
-
+        # 设置日志打印间隔
         self.log_stats_t = -self.args.learner_log_interval - 1
         
         self.train_t = 0

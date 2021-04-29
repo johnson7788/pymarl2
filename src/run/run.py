@@ -138,14 +138,14 @@ def run_sequential(args, logger):
     # 给runner这个schema
     runner.setup(scheme=scheme, groups=groups, preprocess=preprocess, mac=mac)
 
-    # Learner, 调用src/learners/nq_learner.py下的NQLearner
+    # Learner, 调用src/learners/nq_learner.py下的NQLearner初始化
     learner = le_REGISTRY[args.learner](mac, buffer.scheme, logger, args)
 
     if args.use_cuda:
         learner.cuda()
 
     if args.checkpoint_path != "":
-
+        # 加载checkpoint，继续训练
         timesteps = []
         timestep_to_load = 0
 
@@ -153,10 +153,10 @@ def run_sequential(args, logger):
             logger.console_logger.info("Checkpoint directiory {} doesn't exist".format(args.checkpoint_path))
             return
 
-        # Go through all files in args.checkpoint_path
+        # 遍历args.checkpoint_path中的所有文件
         for name in os.listdir(args.checkpoint_path):
             full_name = os.path.join(args.checkpoint_path, name)
-            # Check if they are dirs the names of which are numbers
+            # 检查它们是否是Dirs的名称是数字
             if os.path.isdir(full_name) and name.isdigit():
                 timesteps.append(int(name))
 
@@ -177,7 +177,7 @@ def run_sequential(args, logger):
             evaluate_sequential(args, runner)
             return
 
-    # start training
+    # 开始训练
     episode = 0
     last_test_T = -args.test_interval - 1
     last_log_T = 0
@@ -186,11 +186,11 @@ def run_sequential(args, logger):
     start_time = time.time()
     last_time = start_time
 
-    logger.console_logger.info("Beginning training for {} timesteps".format(args.t_max))
+    logger.console_logger.info("开始训练，训练的 {} 个时间步".format(args.t_max))
 
     while runner.t_env <= args.t_max:
 
-        # Run for a whole episode at a time
+        # 一个时间步运行一个episode
 
         with th.no_grad():
             episode_batch = runner.run(test_mode=False)

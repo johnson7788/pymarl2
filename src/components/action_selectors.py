@@ -160,15 +160,27 @@ class EpsilonGreedyActionSelector():
         
 
     def select_action(self, agent_inputs, avail_actions, t_env, test_mode=False):
-
-        # Assuming agent_inputs is a batch of Q-Values for each agent bav
+        """
+        根据Q值选择动作
+        :param agent_inputs:
+        :type agent_inputs: shape: torch.Size([8, 8, 6])
+        :param avail_actions:
+        :type avail_actions:  shape: torch.Size([8, 8, 6])
+        :param t_env:  eg: 0
+        :type t_env: int
+        :param test_mode:
+        :type test_mode:
+        :return:
+        :rtype:
+        """
+        # 假设Agent_Inputs是每个agent bav的一个batch的Q值 ，计算epsilon随着时间步的decay后的值
         self.epsilon = self.schedule.eval(t_env)
-
+        # 如果测试模式, 不要随机探索，epsilon设为0
         if test_mode:
-            # Greedy action selection only
+            # 只有贪婪的行动选择
             self.epsilon = 0.0
 
-        # mask actions that are excluded from selection
+        # 从选择中排除的mask操作
         masked_q_values = agent_inputs.clone()
         masked_q_values[avail_actions == 0] = -float("inf")  # should never be selected!
         

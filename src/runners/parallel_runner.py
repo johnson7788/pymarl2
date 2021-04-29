@@ -64,16 +64,16 @@ class ParallelRunner:
     def reset(self):
         self.batch = self.new_batch()
 
-        # Reset the envs
+        # 对于多进程的每个环境，都进行reset
         for parent_conn in self.parent_conns:
             parent_conn.send(("reset", None))
-
+        # 初始化一个pre_transition_data，存放每个agent返回的信息，state，obs， actions
         pre_transition_data = {
             "state": [],
             "avail_actions": [],
             "obs": []
         }
-        # Get the obs, state and avail_actions back
+        # 获取返回的obs，State和Avail_actions
         for parent_conn in self.parent_conns:
             data = parent_conn.recv()
             pre_transition_data["state"].append(data["state"])
@@ -86,21 +86,20 @@ class ParallelRunner:
         self.env_steps_this_run = 0
 
     def run(self, test_mode=False):
+        # 重置环境
         self.reset()
-
         all_terminated = False
         episode_returns = [0 for _ in range(self.batch_size)]
         episode_lengths = [0 for _ in range(self.batch_size)]
         self.mac.init_hidden(batch_size=self.batch_size)
         terminated = [False for _ in range(self.batch_size)]
         envs_not_terminated = [b_idx for b_idx, termed in enumerate(terminated) if not termed]
-        final_env_infos = []  # may store extra stats like battle won. this is filled in ORDER OF TERMINATION
-        
+        final_env_infos = []  # 可以存储额外的统计资料，如战斗胜利，这是按终止顺序填写的。
         save_probs = getattr(self.args, "save_probs", False)
         while True:
 
-            # Pass the entire batch of experiences up till now to the agents
-            # Receive the actions for each agent at this timestep in a batch for each un-terminated env
+            # 将到目前为止的整批经验传递给agents
+            # 在这个时间段内，以批次的方式接收每个agent的行动，对于每个未结束的env
             if save_probs:
                 actions, probs = self.mac.select_actions(self.batch, t_ep=self.t, t_env=self.t_env, bs=envs_not_terminated, test_mode=test_mode)
             else:
