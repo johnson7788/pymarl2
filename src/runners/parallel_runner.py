@@ -31,7 +31,7 @@ class ParallelRunner:
         self.parent_conns[0].send(("get_env_info", None))
         self.env_info = self.parent_conns[0].recv()
         self.episode_limit = self.env_info["episode_limit"]
-
+        # 时间步，记录
         self.t = 0
 
         self.t_env = 0
@@ -147,11 +147,13 @@ class ParallelRunner:
             #为每个未结束的env接收数据
             for idx, parent_conn in enumerate(self.parent_conns):
                 if not terminated[idx]:
+                    # data ：dict 包括'state', 'avail_actions','obs','reward','terminated','info'
                     data = parent_conn.recv()
                     # 当前时间的剩余数据
                     post_transition_data["reward"].append((data["reward"],))
-
+                    # 这个episode的每个agent返回的奖励
                     episode_returns[idx] += data["reward"]
+                    # 每个agnent的进行了多少个episode，记录下
                     episode_lengths[idx] += 1
                     if not test_mode:
                         self.env_steps_this_run += 1
@@ -164,7 +166,7 @@ class ParallelRunner:
                     terminated[idx] = data["terminated"]
                     post_transition_data["terminated"].append((env_terminated,))
 
-                    # Data for the next timestep needed to select an action
+                    # 下一个时间步选择一个action的数据
                     pre_transition_data["state"].append(data["state"])
                     pre_transition_data["avail_actions"].append(data["avail_actions"])
                     pre_transition_data["obs"].append(data["obs"])
@@ -172,7 +174,7 @@ class ParallelRunner:
             # Add post_transiton data into the batch
             self.batch.update(post_transition_data, bs=envs_not_terminated, ts=self.t, mark_filled=False)
 
-            # Move onto the next timestep
+            # 时间步+1
             self.t += 1
 
             # Add the pre-transition data
