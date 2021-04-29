@@ -104,33 +104,35 @@ class ParallelRunner:
                 actions, probs = self.mac.select_actions(self.batch, t_ep=self.t, t_env=self.t_env, bs=envs_not_terminated, test_mode=test_mode)
             else:
                 actions = self.mac.select_actions(self.batch, t_ep=self.t, t_env=self.t_env, bs=envs_not_terminated, test_mode=test_mode)
-                
+            # action转到cpu
             cpu_actions = actions.to("cpu").numpy()
 
-            # Update the actions taken
+            # 更新所采取的操作，
             actions_chosen = {
                 "actions": actions.unsqueeze(1).to("cpu"),
             }
             if save_probs:
                 actions_chosen["probs"] = probs.unsqueeze(1).to("cpu")
-            
+            #把action更新到buffer中
             self.batch.update(actions_chosen, bs=envs_not_terminated, ts=self.t, mark_filled=False)
 
-            # Send actions to each env
+            # 向每个env发送action
             action_idx = 0
             for idx, parent_conn in enumerate(self.parent_conns):
-                if idx in envs_not_terminated: # We produced actions for this env
-                    if not terminated[idx]: # Only send the actions to the env if it hasn't terminated
+                if idx in envs_not_terminated: # 我们为此env制作了行动
+                    if not terminated[idx]: # 如果它没有结束，将动作发送到ENV
                         parent_conn.send(("step", cpu_actions[action_idx]))
                     action_idx += 1 # actions is not a list over every env
 
-            # Update envs_not_terminated
+            # 更新 envs_not_terminated，判断
             envs_not_terminated = [b_idx for b_idx, termed in enumerate(terminated) if not termed]
+            # 判断是否所有env都结束了
             all_terminated = all(terminated)
+            #如果都结束，退出
             if all_terminated:
                 break
 
-            # Post step data we will insert for the current timestep
+            # 发送step数据，我们将插入当前的timestep
             post_transition_data = {
                 "reward": [],
                 "terminated": []

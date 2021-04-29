@@ -1,5 +1,5 @@
 from matplotlib.pyplot import xcorr
-import torch as th
+import torch
 from torch.distributions import Categorical
 from torch.distributions.one_hot_categorical import OneHotCategorical
 from .epsilon_schedules import DecayThenFlatSchedule
@@ -14,15 +14,15 @@ class GumbelSoftmax(OneHotCategorical):
     def sample_gumbel(self):
         U = self.logits.clone()
         U.uniform_(0, 1)
-        return -th.log( -th.log( U + self.eps))
+        return -torch.log( -torch.log( U + self.eps))
 
     def gumbel_softmax_sample(self):
         y = self.logits + self.sample_gumbel()
-        return th.softmax( y / self.temperature, dim=-1)
+        return torch.softmax( y / self.temperature, dim=-1)
 
     def hard_gumbel_softmax_sample(self):
         y = self.gumbel_softmax_sample()
-        return (th.max(y, dim=-1, keepdim=True)[0] == y).float()
+        return (torch.max(y, dim=-1, keepdim=True)[0] == y).float()
 
     def rsample(self):
         return self.gumbel_softmax_sample()
@@ -58,7 +58,7 @@ class GumbelSoftmaxMultinomialActionSelector():
             picked_actions = masked_policies.max(dim=2)[1]
         else:
             picked_actions = GumbelSoftmax(logits=masked_policies).sample()
-            picked_actions = th.argmax(picked_actions, dim=-1).long()
+            picked_actions = torch.argmax(picked_actions, dim=-1).long()
 
         if self.save_probs:
             return picked_actions, masked_policies
@@ -128,7 +128,7 @@ class DiscreteDeterministicActionSelector():
 
         # greedy
         picked_actions = masked_policies.max(dim=2)[1]
-        masked_policies = th.zeros_like(masked_policies).scatter_(2, picked_actions.unsqueeze(-1), 1)
+        masked_policies = torch.zeros_like(masked_policies).scatter_(2, picked_actions.unsqueeze(-1), 1)
 
         if not test_mode or not self.test_greedy:
             self.epsilon = self.schedule.eval(t_env)
@@ -182,13 +182,15 @@ class EpsilonGreedyActionSelector():
 
         # 从选择中排除的mask操作
         masked_q_values = agent_inputs.clone()
-        # 永远不应该被选中！
+        # 永远不应该被选中！ 被mask的地方设为inf，负无穷
         masked_q_values[avail_actions == 0] = -float("inf")
-        
-        random_numbers = th.rand_like(agent_inputs[:, :, 0])
+        # random_numbers: torch.Size([8, 8])
+        random_numbers = torch.rand_like(agent_inputs[:, :, 0])
+        #  pick_random: torch.Size([8, 8])
         pick_random = (random_numbers < self.epsilon).long()
+        # random_actions: torch.Size([8, 8])
         random_actions = Categorical(avail_actions.float()).sample().long()
-
+        # 选择的动作
         picked_actions = pick_random * random_actions + (1 - pick_random) * masked_q_values.max(dim=2)[1]
         return picked_actions
 
@@ -213,7 +215,7 @@ class GaussianActionSelector():
         if test_mode and self.test_greedy:
             picked_actions = mu
         else:
-            dst = th.distributions.MultivariateNormal(mu.view(-1,
+            dst = torch.distributions.MultivariateNormal(mu.view(-1,
                                                               mu.shape[-1]),
                                                       sigma.view(-1,
                                                                  mu.shape[-1],

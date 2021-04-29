@@ -30,7 +30,7 @@ class NMAC(BasicMAC):
         avail_actions = ep_batch["avail_actions"][:, t_ep]
         # Q值 qvals: shape : torch.Size([8, 8, 6])
         qvals = self.forward(ep_batch, t_ep, test_mode=test_mode)
-        #
+        #chosen_actions： torch.Size([8, 8])
         chosen_actions = self.action_selector.select_action(qvals[bs], avail_actions[bs], t_env, test_mode=test_mode)
         return chosen_actions
 
