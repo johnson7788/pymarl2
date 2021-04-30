@@ -13,9 +13,10 @@ class ParallelRunner:
     def __init__(self, args, logger):
         self.args = args
         self.logger = logger
+        # eg: 8
         self.batch_size = self.args.batch_size_run
 
-        # 为envs制作子进程
+        # 为envs制作子进程, 并发进行
         self.parent_conns, self.worker_conns = zip(*[Pipe() for _ in range(self.batch_size)])
         env_fn = env_REGISTRY[self.args.env]
         self.ps = []

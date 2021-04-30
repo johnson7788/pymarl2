@@ -58,25 +58,25 @@ def run(_run, _config, _log):
         tb_exp_direc = os.path.join(tb_logs_direc, "{}").format(unique_token)
         logger.setup_tb(tb_exp_direc)
 
-    # sacred is on by default
+    # 默认情况下日志sacred来管理
     logger.setup_sacred(_run)
 
     # 运行和训练
     run_sequential(args=args, logger=logger)
 
     # Clean up after finishing
-    print("Exiting Main")
+    print("退出主程序")
 
-    print("Stopping all threads")
+    print("停止所有线程")
     for t in threading.enumerate():
         if t.name != "MainThread":
             print("Thread {} is alive! Is daemon: {}".format(t.name, t.daemon))
             t.join(timeout=1)
             print("Thread joined")
 
-    print("Exiting script")
+    print("退出 script")
 
-    # Making sure framework really exits
+    # 确实退出状态
     os._exit(os.EX_OK)
 
 
@@ -105,8 +105,11 @@ def run_sequential(args, logger):
 
     # 在此设置schemes和groups
     env_info = runner.get_env_info()
+    # agent的数量 eg: 8
     args.n_agents = env_info["n_agents"]
+    # 动作的数量 eg: 6
     args.n_actions = env_info["n_actions"]
+    # agent状态的维度: 300
     args.state_shape = env_info["state_shape"]
 
     if getattr(args, 'agent_own_state_size', False):
@@ -199,7 +202,7 @@ def run_sequential(args, logger):
         if buffer.can_sample(args.batch_size):
             episode_sample = buffer.sample(args.batch_size)
 
-            # Truncate batch to only filled timesteps
+            # 截断批次只保留有时间步的
             max_ep_t = episode_sample.max_t_filled()
             episode_sample = episode_sample[:, :max_ep_t]
 
@@ -209,7 +212,7 @@ def run_sequential(args, logger):
             learner.train(episode_sample, runner.t_env, episode)
             del episode_sample
 
-        # Execute test runs once in a while
+        # 执行测试运行一次
         n_test_runs = max(1, args.test_nepisode // runner.batch_size)
         if (runner.t_env - last_test_T) / args.test_interval >= 1.0:
 
@@ -241,7 +244,7 @@ def run_sequential(args, logger):
             last_log_T = runner.t_env
 
     runner.close_env()
-    logger.console_logger.info("Finished Training")
+    logger.console_logger.info("完成训练")
 
 
 def args_sanity_check(config, _log):

@@ -110,14 +110,14 @@ def config_copy(config):
 
 def parse_command(params, key, default):
     """
-
-    :param params:
+    获取命令参数传过来的值
+    :param params:  eg: ['/Users/admin/git/pymarl2/src/main.py', 'with', 'env_args.map_name=stag_hunt']
     :type params:
-    :param key:
+    :param key:  eg: 'env_args.map_name'
     :type key:
-    :param default:
+    :param default:  eg: 'stag_hunt'
     :type default:
-    :return:
+    :return:  'stag_hunt'
     :rtype:
     """
     result = default
