@@ -141,7 +141,7 @@ def run_sequential(args, logger):
     # 给runner这个schema
     runner.setup(scheme=scheme, groups=groups, preprocess=preprocess, mac=mac)
 
-    # Learner, 调用src/learners/nq_learner.py下的NQLearner初始化
+    # Learner, 调用src/learners/nq_learner.py下的NQLearner初始化, 不同的算法初始化
     learner = le_REGISTRY[args.learner](mac, buffer.scheme, logger, args)
 
     if args.use_cuda:

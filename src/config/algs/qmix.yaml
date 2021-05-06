@@ -1,6 +1,6 @@
 # --- QMIX specific parameters ---
 
-# use epsilon greedy action selector
+# 使用epsilon贪婪动作选择器
 action_selector: "epsilon_greedy"
 epsilon_start: 1.0
 epsilon_finish: 0.05

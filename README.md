@@ -60,6 +60,8 @@ python3 src/main.py --config=qmix_prey --env-config=stag_hunt with env_args.map_
 `--config`指的是`src/config/algs`中的配置文件。
 `--env-config`指的是`src/config/envs`中的配置文件。
 
+## 代码的流程
+parallel_runner.py 中的env_worker 负责初始化环境,---加载src/envs/__init__.py中的env_fn加载环境
 
 ## 运行并行实验： 
 ```shell

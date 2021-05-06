@@ -190,7 +190,7 @@ class EpsilonGreedyActionSelector():
         pick_random = (random_numbers < self.epsilon).long()
         # random_actions: torch.Size([8, 8])
         random_actions = Categorical(avail_actions.float()).sample().long()
-        # 选择的动作
+        # 选择的动作 shape: torch.Size([8, 8])
         picked_actions = pick_random * random_actions + (1 - pick_random) * masked_q_values.max(dim=2)[1]
         return picked_actions
 

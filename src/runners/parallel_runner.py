@@ -24,14 +24,14 @@ class ParallelRunner:
             ps = Process(target=env_worker, 
                     args=(worker_conn, CloudpickleWrapper(partial(env_fn, **self.args.env_args))))
             self.ps.append(ps)
-
+        # ps里面有8个进程, 启动每个进程
         for p in self.ps:
             p.daemon = True
             p.start()
 
         self.parent_conns[0].send(("get_env_info", None))
-        self.env_info = self.parent_conns[0].recv()
-        self.episode_limit = self.env_info["episode_limit"]
+        self.env_info = self.parent_conns[0].recv()   #eg: {'state_shape': 300, 'obs_shape': 75, 'n_actions': 6, 'n_agents': 8, 'episode_limit': 200}
+        self.episode_limit = self.env_info["episode_limit"]  #eg: 200
         # 时间步，记录
         self.t = 0
 
@@ -80,7 +80,7 @@ class ParallelRunner:
             pre_transition_data["state"].append(data["state"])
             pre_transition_data["avail_actions"].append(data["avail_actions"])
             pre_transition_data["obs"].append(data["obs"])
-
+        # 更新数据到buffer中
         self.batch.update(pre_transition_data, ts=0)
 
         self.t = 0
@@ -90,7 +90,9 @@ class ParallelRunner:
         # 重置环境
         self.reset()
         all_terminated = False
+        # 初始化episod的奖励，默认[0, 0, 0, 0, 0, 0, 0, 0]
         episode_returns = [0 for _ in range(self.batch_size)]
+        # episode进行了多少个小的回合，初始化[0, 0, 0, 0, 0, 0, 0, 0]
         episode_lengths = [0 for _ in range(self.batch_size)]
         self.mac.init_hidden(batch_size=self.batch_size)
         terminated = [False for _ in range(self.batch_size)]
@@ -184,7 +186,7 @@ class ParallelRunner:
         if not test_mode:
             self.t_env += self.env_steps_this_run
 
-        # Get stats back for each env
+        # 为每个env获取统计数据
         for parent_conn in self.parent_conns:
             parent_conn.send(("get_stats",None))
 
@@ -226,7 +228,15 @@ class ParallelRunner:
 
 
 def env_worker(remote, env_fn):
-    # Make environment
+    """
+    创建环境，env_fn是初始化环境的配置信息
+    :param remote: eg: <multiprocessing.connection.Connection object at 0x7fc6f40d3dc0>
+    :type remote:
+    :param env_fn: eg: <runners.parallel_runner.CloudpickleWrapper object at 0x7fc6f828d8e0>
+    :type env_fn:
+    :return:
+    :rtype:
+    """
     env = env_fn.x()
     while True:
         cmd, data = remote.recv()
@@ -269,7 +279,7 @@ def env_worker(remote, env_fn):
 
 class CloudpickleWrapper():
     """
-    Uses cloudpickle to serialize contents (otherwise multiprocessing tries to use pickle)
+    使用CloudPickle序列化内容（否则多处理尝试使用pickle)
     """
     def __init__(self, x):
         self.x = x

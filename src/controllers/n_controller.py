@@ -12,8 +12,8 @@ class NMAC(BasicMAC):
         
     def select_actions(self, ep_batch, t_ep, t_env, bs=slice(None), test_mode=False):
         """
-
-        :param ep_batch:   eg: EpisodeBatch. Batch Size:8 Max_seq_len:201 Keys:dict_keys(['state', 'obs', 'actions', 'avail_actions', 'probs', 'reward', 'terminated', 'actions_onehot', 'filled']) Groups:dict_keys(['agents'])
+        采取的行动
+        :param ep_batch:   这个episode的batch的相关信息， eg: EpisodeBatch. Batch Size:8 Max_seq_len:201 Keys:dict_keys(['state', 'obs', 'actions', 'avail_actions', 'probs', 'reward', 'terminated', 'actions_onehot', 'filled']) Groups:dict_keys(['agents'])
         :type ep_batch:
         :param t_ep:   eg: 0
         :type t_ep:
@@ -26,11 +26,11 @@ class NMAC(BasicMAC):
         :return:
         :rtype:
         """
-        # 仅在bs中选择所选批次元素的操作, eg:
+        # 仅在bs中选择所选批次元素的操作, eg: torch.Size([8, 8, 6])
         avail_actions = ep_batch["avail_actions"][:, t_ep]
-        # Q值 qvals: shape : torch.Size([8, 8, 6])
+        # Q值 qvals: shape : torch.Size([8, 8, 6]), 调用模型的前向
         qvals = self.forward(ep_batch, t_ep, test_mode=test_mode)
-        #chosen_actions： torch.Size([8, 8])
+        #chosen_actions： torch.Size([8, 8]),
         chosen_actions = self.action_selector.select_action(qvals[bs], avail_actions[bs], t_env, test_mode=test_mode)
         return chosen_actions
 
@@ -46,11 +46,11 @@ class NMAC(BasicMAC):
         :return:
         :rtype:
         """
-        # 从buffer中提取时间步t对应的输入
+        # 从buffer中提取时间步t对应的输入， 形状 torch.Size([8, 8, 81])
         agent_inputs = self._build_inputs(ep_batch, t)
-        # 提取对应的actions
+        # 提取对应的actions,  形状 torch.Size([8, 8, 6])
         avail_actions = ep_batch["avail_actions"][:, t]
-        # 根据隐藏状态和输入，放入rnn模型，获取rnn的输出和新的隐藏层状态
+        # 根据隐藏状态和输入，放入rnn模型，获取rnn的输出和新的隐藏层状态  self.hidden_states： torch.Size([8, 8, 64])
         agent_outs, self.hidden_states = self.agent(agent_inputs, self.hidden_states)
-
+        # agent_outs： torch.Size([8, 8, 6])
         return agent_outs

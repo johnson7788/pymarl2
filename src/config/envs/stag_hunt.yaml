@@ -9,26 +9,26 @@ env_args:
     n_stags: 8
     n_hare: 0
     miscapture_punishment: 0
-    agent_obs: [2, 2]       # (radius-1) of the agent's observation, e.g., [0, 0] observes only one pixel
-    agent_move_block: [0,1,2]   # by which entities is an agent's move blocked (0=agents, 1=stags, 2=hare)
-#    capture_action: False   # whether capturing requires an extra action (True) or just capture_conditions (False)
-    capture_conditions: [0, 1]  # number of free fields available to [stag, hare] to be captured
-    capture_action_conditions: [2, 1]  # number of agents that have to simultaneously execute "catch" action
-    capture_freezes: True   # whether capturing any prey freezes the participating agents (True) or not (False)
-    capture_terminal: False # whether capturing any prey ends the episode
-    directed_observations: False   # Agents observe square around them (False) or a cone in the direction of the last action (True).
-    directed_cone_narrow: True     # Whether the diagonal is excluded from the directed_observation cone (True)
-    directed_exta_actions: True    # Whether the observation cone is controlled by movement (False) or actions (True)
-    episode_limit: 200      # maximum number of time steps per episode
-    intersection_global_view: False # intersection specific (MACKRL)
+    agent_obs: [2, 2]       # (半径-1）的agent的观察，例如，[0，0]
+    agent_move_block: [0,1,2]   #agent的行动被哪些实体阻止（0=agent，1=stags，2=hare）
+#    capture_action: False   # 捕获是否需要额外的动作（true）或只是capture_conditions（false)
+    capture_conditions: [0, 1]  # 捕获[stag, hare]可用的自由fields数量
+    capture_action_conditions: [2, 1]  # 必须同时执行“捕获”动作的agent数量
+    capture_freezes: True   # 捕获任何猎物是否会冻结参与的agent（True）或不（False)
+    capture_terminal: False # 是否捕获任何猎物结束episode
+    directed_observations: False   # agent观察他们周围的square（False）或最后行动方向的cone圆锥体（True）。
+    directed_cone_narrow: True     # 是否从指向的观察cone中排除了对角线（true）
+    directed_exta_actions: True    # observation cone是否由运动（False）或行动（True）控制
+    episode_limit: 200      # 每个episode的最大时间steps
+    intersection_global_view: False # 特定交叉(MACKRL)
     intersection_unknown: False     # intersection specific (MACKRL)
-#    miscapture_punishment: -1       # punishment if less than capture_action_conditions agents executes capture_action
-    mountain_slope: 0.0     # probability that an "up" action will not be executed (stag_hunt = 0.0)
-    mountain_spawn: False   # whether prey spawns in their preferred habitat (True) or randomly (False)
-    mountain_agent_row: -1  # the row in which the agents are spawned (0 is top). Negative values spawn agents randomly.
-#    n_agents: 2             # number of hungers, i.e., agents
-#    n_hare: 2               # number of hares in the environment
-#    n_stags: 1              # number of stags in the environment
+#    miscapture_punishment: -1       # 如果少于Capture_Action_Conditions agent执行Capture_Action，则处罚
+    mountain_slope: 0.0     # 不执行 "向上 "动作的概率（stag_hunt = 0.0）
+    mountain_spawn: False   # 猎物是否在他们的首选栖息地（True）或随机（False）
+    mountain_agent_row: -1  # spawned agent的行（0为顶）。负值表示会随机产生agent。
+#    n_agents: 2             # 捕猎人数 , i.e., agents
+#    n_hare: 2               # 环境中的野兔数量
+#    n_stags: 1              # 环境中的stag数量
     observe_state: False    # whether an observation is only partial (False) or central including agent position (True)
     observe_walls: False    # observe walls as an extra feature (only for state_as_list=False and toroidal=False)
     observe_ids: False      # observe agent ID, instead of agent presence (only for state_as_list=False)

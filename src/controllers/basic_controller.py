@@ -3,7 +3,7 @@ from components.action_selectors import REGISTRY as action_REGISTRY
 import torch
 
 
-# This multi-agent controller shares parameters between agents
+# 此多功能控制器共享agent之间的参数
 class BasicMAC:
     def __init__(self, scheme, groups, args):
         self.n_agents = args.n_agents
@@ -63,6 +63,7 @@ class BasicMAC:
         self.agent.load_state_dict(torch.load("{}/agent.th".format(path), map_location=lambda storage, loc: storage))
 
     def _build_agents(self, input_shape):
+        # 调用NRNNAgent初始化
         self.agent = agent_REGISTRY[self.args.agent](input_shape, self.args)
 
     def _build_inputs(self, batch, t):

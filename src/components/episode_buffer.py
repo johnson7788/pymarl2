@@ -1,4 +1,4 @@
-import torch as th
+import torch
 import numpy as np
 from types import SimpleNamespace as SN
 
@@ -50,15 +50,15 @@ class EpisodeBatch:
 
         assert "filled" not in scheme, '"filled" is a reserved key for masking.'
         scheme.update({
-            "filled": {"vshape": (1,), "dtype": th.long},
+            "filled": {"vshape": (1,), "dtype": torch.long},
         })
-
+        # scheme: {'state': {'vshape': 300}, 'obs': {'vshape': 75, 'group': 'agents'}, 'actions': {'vshape': (1,), 'group': 'agents', 'dtype': torch.int64}, 'avail_actions': {'vshape': (6,), 'group': 'agents', 'dtype': torch.int32}, 'probs': {'vshape': (6,), 'group': 'agents', 'dtype': torch.float32}, 'reward': {'vshape': (1,)}, 'terminated': {'vshape': (1,), 'dtype': torch.uint8}, 'actions_onehot': {'vshape': (6,), 'dtype': torch.float32, 'group': 'agents'}, 'filled': {'vshape': (1,), 'dtype': torch.int64}}
         for field_key, field_info in scheme.items():
             assert "vshape" in field_info, "Scheme must define vshape for {}".format(field_key)
             vshape = field_info["vshape"]
             episode_const = field_info.get("episode_const", False)
             group = field_info.get("group", None)
-            dtype = field_info.get("dtype", th.float32)
+            dtype = field_info.get("dtype", torch.float32)
 
             if isinstance(vshape, int):
                 vshape = (vshape,)
@@ -70,9 +70,9 @@ class EpisodeBatch:
                 shape = vshape
 
             if episode_const:
-                self.data.episode_data[field_key] = th.zeros((batch_size, *shape), dtype=dtype, device=self.device)
+                self.data.episode_data[field_key] = torch.zeros((batch_size, *shape), dtype=dtype, device=self.device)
             else:
-                self.data.transition_data[field_key] = th.zeros((batch_size, max_seq_length, *shape), dtype=dtype, device=self.device)
+                self.data.transition_data[field_key] = torch.zeros((batch_size, max_seq_length, *shape), dtype=dtype, device=self.device)
 
     def extend(self, scheme, groups=None):
         self._setup_data(scheme, self.groups if groups is None else groups, self.batch_size, self.max_seq_length)
@@ -86,7 +86,7 @@ class EpisodeBatch:
 
     def update(self, data, bs=slice(None), ts=slice(None), mark_filled=True):
         """
-
+        
         :param data:
         :type data:
         :param bs: 一个batch的agents 索引, eg: [0, 1, 2, 3, 4, 5, 6, 7]
@@ -113,8 +113,8 @@ class EpisodeBatch:
             else:
                 raise KeyError("{} not found in transition or episode data".format(k))
 
-            dtype = self.scheme[k].get("dtype", th.float32)
-            v = th.tensor(v, dtype=dtype, device=self.device)
+            dtype = self.scheme[k].get("dtype", torch.float32)
+            v = torch.tensor(v, dtype=dtype, device=self.device)
             self._check_safe_view(v, target[k][_slices])
             target[k][_slices] = v.view_as(target[k][_slices])
 
@@ -187,14 +187,14 @@ class EpisodeBatch:
 
     def _parse_slices(self, items):
         parsed = []
-        # Only batch slice given, add full time slice
+        # 仅提供批次切片，添加full time 切片
         if (isinstance(items, slice)  # slice a:b
             or isinstance(items, int)  # int i
-            or (isinstance(items, (list, np.ndarray, th.LongTensor, th.cuda.LongTensor)))  # [a,b,c]
+            or (isinstance(items, (list, np.ndarray, torch.LongTensor, torch.cuda.LongTensor)))  # [a,b,c]
             ):
             items = (items, slice(None))
 
-        # Need the time indexing to be contiguous
+        # 需要时间索引是连续的
         if isinstance(items[1], list):
             raise IndexError("Indexing across Time must be contiguous")
 
@@ -209,7 +209,7 @@ class EpisodeBatch:
         return parsed
 
     def max_t_filled(self):
-        return th.sum(self.data.transition_data["filled"], 1).max(0)[0]
+        return torch.sum(self.data.transition_data["filled"], 1).max(0)[0]
 
     def __repr__(self):
         return "EpisodeBatch. Batch Size:{} Max_seq_len:{} Keys:{} Groups:{}".format(self.batch_size,
