@@ -4,8 +4,8 @@ from gym.envs.registration import EnvSpec
 import numpy as np
 from envs.particle.multi_discrete import MultiDiscrete
 
-# environment for all agents in the multiagent world
-# currently code assumes that no agents will be created/destroyed at runtime!
+# 多agent世界中所有agent的环境
+# 目前代码假设在运行时不会创建/销毁agent！
 class MultiAgentEnv(gym.Env):
     metadata = {
         'render.modes' : ['human', 'rgb_array']

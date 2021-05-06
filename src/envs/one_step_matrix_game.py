@@ -3,7 +3,7 @@ from utils.dict2namedtuple import convert
 import numpy as np
 import torch as th
 
-# this non-monotonic matrix can be solved by qmix
+# 这种非单调矩阵可以通过qmix解决
 payoff_values = [[12, -0.1, -0.1],
                     [-0.1, 0, 0],
                     [-0.1, 0, 0]]

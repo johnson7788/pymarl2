@@ -52,6 +52,10 @@ python3 src/main.py --config=qmix --env-config=sc2 with env_args.map_name=corrid
 ```shell
 # 适用于合作捕食者-猎物： Cooperative Predator-Prey 
 python3 src/main.py --config=qmix_prey --env-config=stag_hunt with env_args.map_name=stag_hunt
+
+猎鹿博弈（英语：stag hunt)
+在这一场景下，两名猎人一起去打猎，他们可以猎取鹿，也可以猎取野兔。鹿需要两个人合作才能获取，野兔一个人就可猎得，但猎鹿所得的收益大于猎野兔所得的收益。猎鹿赛局和囚徒困境最大区别之一，在于当双方都不合作时所获得的惩罚相对较小。 
+
 ```
 
 配置文件作为一种算法或环境的默认值。

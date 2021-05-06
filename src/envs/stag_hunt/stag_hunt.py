@@ -7,38 +7,38 @@ import pygame
 from utils.dict2namedtuple import convert
 
 '''
-A simple n*m grid-world game for N agents trying to capture M prey and M' hares. 
-No two entities can occupy the same position. The world can be either toroidal or bounded.
-GRAPH INTERFACE
-With the parameter state_as_graph=True, the .get_state() function returns a list of entities.
-Each entity is represented as a dictionary with the following fields:
-- 'type': {'agent', 'stag', 'hare'} denotes the type of entity
-- 'pos': ndarray(2) denotes the position (vertical in [0=highest, n-1=lowest], horizontal in [0=leftest, m-1=rightest])
-- 'avail_action': ndarray(5) only for 'type'='agent' denotes available actions (right, down, left, up, stay)
-INTERSECTION OF OBSERVATIONS:
-This version of predator prey also includes the observation method get_obs_intersection(agent_ids, global_view=False),
-which returns a numpy array either as of size batch_size*state_dim (if global_view=True) or of size 
-len(agent_ids)*batch_size*observation_dim (if global_view=False), where batch_size can be omitted if it is 
-not specified in the constructor. The array contains the intersection of the observation of all agents 
-in the list of agent_ids, either as state or as agent observation (centered around the respective agent),
-but with the difference that the agent and prey (ID+1) are given, instead of just their presence (1).
-Standard agent observations can be recovered by masking array>0.   
-MOVEMENTS
-Both predators and prey can move to the 4 adjacent states or remain in the current one. Movement is executed 
-sequentially: first the predators move in a random order, then the prey chooses a random available action 
-(i.e. an action that would not lead to a collision with another entity). 
-A prey is captured if it cannot move (i.e. if 4 agents block all 4 adjacent fields).
-REWARDS 
-A captured prey is removed and yields a collaborative reward of +50. 
-Forcing the a prey to move (scaring it off), by moving into the same field yields no additional reward. 
-Collisions between agents is not punished, and each movement costs additional -0.1 reward. 
-An episode ends if all prey have been captured.  
-OBSERVATIONS
-Prey only react to blocked movements (after the predators have moved), but predator agents observe all positions 
-in a square of obs_size=(2*agent_obs+1) centered around the agent's current position. The observations are reshaped 
-into a 1d vector of size (2*obs_size), including all predators and prey the agent can observe.
-State output is a list of length 2, giving location of all agents and all targets.
-TODO: Fine tune the reward to allow fast learning. 
+一个简单的n*m网格世界游戏，N个agent试图捕获M个猎物和M'只野兔。
+没有两个实体可以占据相同的位置。world可以是环形的，也可以是有界的。
+
+图形接口
+在参数state_as_graph=True的情况下，.get_state()函数返回一个实体的列表。
+每个实体被表示为一个具有以下字段的字典。
+- 'type': {'agent', 'stag', 'hare'} 表示实体的类型 , agent: 猎人， stag: 鹿， hare：野兔
+- 'pos': ndarray(2) 表示位置  (垂直 in [0=highest, n-1=lowest], 水平 in [0=leftest, m-1=rightest])
+- 'avail_action': ndarray(5)只有agent可用， 'type'='agent',  表示可用的动作  (right, down, left, up, stay)
+观察分析： 
+此版本的捕食者猎物还包括观察方法get_obs_intersection(agent_ids, global_view=False),
+返回一个numpy数组，其大小为batch_size*state_dim（如果global_view=True）或大小为
+该数组包含agent_ids列表中所有agent的观察值的交集，可以是状态，也可以是agent观察值（以各自agent为中心）。
+但不同的是，agent和猎物(ID+1)是给定的，而不只是它们的存在(1)。
+标准的agent观察可以通过masking数组>0来恢复。
+
+移动
+捕食者和被捕食者都可以移动到4个相邻的状态，或者保持在当前状态。移动是按顺序进行的：首先捕食者按随机顺序移动，然后猎物选择一个随机的可用行动（即不会导致与其他实体碰撞的行动）。
+如果猎物不能移动（即如果有4个agent封锁了所有4个相邻的区域），则被捕获。
+
+奖赏 
+捕获的猎物被移走，可获得+50的合作奖励。
+迫使猎物移动（将其吓跑），通过移动到同一区域，不产生额外的奖励。
+agent之间的碰撞不受惩罚，每一次移动都需要额外的-0.1奖励。
+如果所有的猎物都被捕获，那么一个episode就结束了。
+
+观察
+猎物只对受阻的运动做出反应（在捕食者移动之后），但捕食者agent观察所有位置 
+在以agent当前位置为中心的obs_size=(2*agent_obs+1)的正方形范围内。观察结果被重塑为 
+成一个大小为(2*obs_size)的1d向量，包括agent可以观察到的所有捕食者和猎物。
+状态输出是一个长度为2的列表，给出所有agent和所有目标的位置。
+TODO: 微调奖励以允许快速学习。
 '''
 
 int_type = np.int16
@@ -52,7 +52,7 @@ class StagHunt(MultiAgentEnv):
     action_look_to_act = 6
 
     def __init__(self, batch_size=None, **kwargs):
-        # Unpack arguments from sacred
+        #获取所有参数
         args = kwargs
         if isinstance(args, dict):
             args = convert(args)
