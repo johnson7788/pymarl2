@@ -7,7 +7,7 @@ import pygame
 from utils.dict2namedtuple import convert
 
 '''
-一个简单的n*m网格世界游戏，N个agent试图捕获M个猎物和M'只野兔。
+一个简单的n*m网格游戏，N个agent试图捕获M个鹿和M'只野兔。
 没有两个实体可以占据相同的位置。world可以是环形的，也可以是有界的。
 
 图形接口
@@ -16,6 +16,7 @@ from utils.dict2namedtuple import convert
 - 'type': {'agent', 'stag', 'hare'} 表示实体的类型 , agent: 猎人， stag: 鹿， hare：野兔
 - 'pos': ndarray(2) 表示位置  (垂直 in [0=highest, n-1=lowest], 水平 in [0=leftest, m-1=rightest])
 - 'avail_action': ndarray(5)只有agent可用， 'type'='agent',  表示可用的动作  (right, down, left, up, stay)
+
 观察分析： 
 此版本的捕食者猎物还包括观察方法get_obs_intersection(agent_ids, global_view=False),
 返回一个numpy数组，其大小为batch_size*state_dim（如果global_view=True）或大小为
@@ -46,7 +47,7 @@ float_type = np.float32
 
 
 class StagHunt(MultiAgentEnv):
-
+    #猎人捕猎游戏
     action_labels = {'right': 0, 'down': 1, 'left': 2, 'up': 3, 'stay': 4, 'catch': 5,
                      'look-right': 6, 'look-down': 7, 'look-left': 8, 'look-up': 9}
     action_look_to_act = 6
@@ -60,7 +61,7 @@ class StagHunt(MultiAgentEnv):
         self.print_caught_prey = getattr(args, "print_caught_prey", False)
         self.print_frozen_agents = getattr(args, "print_frozen_agents", False)
 
-        # Add-on for graph interface
+        # 附加图形界面  ##插件1
         self.state_as_graph = args.state_as_graph
         if self.state_as_graph:
             self.absolute_distance = getattr(args, "absolute_distance", False)
@@ -68,17 +69,17 @@ class StagHunt(MultiAgentEnv):
             self.add_walls = getattr(args, "add_walls", False)
             self.prey_relational = getattr(args, "prey_relational", True)
 
-        # Add-on for goat-hunts (which like to climb mountains)
+        # 附加 山羊狩猎（喜欢爬山）， #插件2
         self.mountain_slope = getattr(args, "mountain_slope", 0.0)
         self.capture_conditions = getattr(args, "capture_conditions", [0, 1])
         self.mountain_spawn = getattr(args, "mountain_spawn", False)
         self.mountain_agent_row = getattr(args, "mountain_agent_row", -1)
 
-        # Downwards compatibility of batch_mode
+        # Batch_Mode向下兼容性
         self.batch_mode = batch_size is not None
         self.batch_size = batch_size if self.batch_mode else 1
 
-        # Define the environment grid
+        # 定义环境网格
         self.truncate_episodes = getattr(args, "truncate_episodes", True)
         self.observe_ids = getattr(args, "observe_ids", False)
         self.intersection_global_view = getattr(args, "intersection_global_view", False)
@@ -102,14 +103,14 @@ class StagHunt(MultiAgentEnv):
         self.grid_shape = np.asarray(shape, dtype=int_type)
         self.grid = np.zeros((self.batch_size, self.x_max, self.y_max, self.n_feats), dtype=float_type)
         # 0=agents, 1=stag, 2=hare, [3=wall, 4=unknown], [-1=ghost-indicator]
-
+        #  如果是 "True"，猎物会随机变成幽灵（否定的奖励），由一个角落的特征来表示
         if self.random_ghosts:
             self.ghost_indicator = False        # indicator whether whether prey is a ghost (True) or not (False)
             self.ghost_indicator_potential_positions = np.asarray([[0, 0], [0, self.x_max-1], [self.y_max-1, 0],
                                                                    [self.y_max-1, self.x_max-1]], dtype=int_type)
             self.ghost_indicator_pos = [0, 0]   # position of the indicator whether prey is a ghost (-1) or not (+1)
 
-        # Define the agents and their action space
+        # 定义agent及其动作空间
         self.capture_action = getattr(args, "capture_action", False)
         self.capture_action_conditions = getattr(args, "capture_action_conditions", (2, 1))
         self.actions = np.asarray([[0, 1], [1, 0], [0, -1], [-1, 0], [0, 0], [0, 0],
@@ -129,7 +130,7 @@ class StagHunt(MultiAgentEnv):
         self.agent_obs_dim = np.asarray(self.agent_obs, dtype=int_type)
 
         if self.observe_state:
-            # The size of the global state as observation (with one additional position feature)
+            # 作为观察的全局状态的大小（有一个额外的位置特征）
             self.obs_size = int(self.state_size + self.grid_shape[0] * self.grid_shape[1])
         elif self.directed_observations and self.directed_cone_narrow:
             # The size of the visible observation cones for this option
@@ -138,7 +139,7 @@ class StagHunt(MultiAgentEnv):
             # The agent-centric observation size
             self.obs_size = self.n_feats * (2 * args.agent_obs[0] + 1) * (2 * args.agent_obs[1] + 1)
 
-        # Define the episode and rewards
+        # 定义episode和奖励
         self.episode_limit = args.episode_limit
         self.time_reward = getattr(args, "reward_time", -0.1)
         self.collision_reward = getattr(args, "reward_collision", 0.0)
@@ -149,7 +150,7 @@ class StagHunt(MultiAgentEnv):
         self.capture_freezes = getattr(args, "capture_freezes", True)
         self.remove_frozen = getattr(args, "remove_frozen", False)
 
-        # Define the internal state
+        # 定义内部状态
         self.agents = np.zeros((self.n_agents, self.batch_size, 2), dtype=int_type)
         self.agents_not_frozen = np.ones((self.n_agents, self.batch_size), dtype=int_type)
         self.agents_orientation = np.zeros((self.n_agents, self.batch_size), dtype=int_type)  # use action_labels 0..3
@@ -166,23 +167,23 @@ class StagHunt(MultiAgentEnv):
 
     # ---------- INTERACTION METHODS -----------------------------------------------------------------------------------
     def reset(self):
-        # Reset old episode
+        # 重置旧episode
         self.prey_alive.fill(1)
         self.agents_not_frozen.fill(1)
         self.steps = 0
         self.sum_rewards = 0
 
-        # Clear the grid
+        # 清除网格
         self.grid.fill(0.0)
 
-        # Place n_agents and n_preys on the grid
+        # 将n_agents和n_preys放在网格上
         self._place_actors(self.agents, 0, row=self.mountain_agent_row if self.mountain_agent_row>= 0 else None)
-        # Place the stags/goats
+        # 放置雄鹿/山羊
         self._place_actors(self.prey[:self.n_stags, :, :], 1, row=0 if self.mountain_spawn else None)
-        # Place the hares/sheep
+        # 放置野兔/绵羊
         self._place_actors(self.prey[self.n_stags:, :, :], 2, row=self.env_max[1]-1 if self.mountain_spawn else None)
 
-        # Agent orientations are initialized randomly
+        # agent方向随机初始化
         self.agents_orientation = np.random.random_integers(low=0, high=3, size=(self.n_agents, self.batch_size))
 
         if self.random_ghosts and self.random_ghosts_random_indicator:
@@ -193,18 +194,18 @@ class StagHunt(MultiAgentEnv):
         return self.get_obs(), self.get_state()
 
     def step(self, actions):
-        """ Execute a*bs actions in the environment. """
+        """ 在环境中执行action*batch_size个操作。   """
         if not self.batch_mode:
             actions = np.expand_dims(np.asarray(actions, dtype=int_type), axis=1)
         assert len(actions.shape) == 2 and actions.shape[0] == self.n_agents and actions.shape[1] == self.batch_size, \
             "improper number of agents and/or parallel environments!"
         actions = actions.astype(dtype=int_type)
 
-        # Initialise returned values and grid
+        # 初始化返回的值和网格
         reward = np.ones(self.batch_size, dtype=float_type) * self.time_reward
         terminated = [False for _ in range(self.batch_size)]
 
-        # Move the agents sequentially in random order
+        # 以随机顺序移动agent
         for b in range(self.batch_size):
             for a in np.random.permutation(self.n_agents):
                 # Only move if not frozen
@@ -224,7 +225,7 @@ class StagHunt(MultiAgentEnv):
                             if actions[a, b] < 4:
                                 self.agents_orientation[a, b] = actions[a, b]
 
-        # Move the prey
+        # 移动猎物
         for b in range(self.batch_size):
             for p in np.random.permutation(self.n_prey):
                 if self.prey_alive[p, b] > 0:
@@ -329,7 +330,7 @@ class StagHunt(MultiAgentEnv):
         if self.random_ghosts:
             self.ghost_indicator = not (random.random() < self.random_ghosts_prob)
 
-        # Terminate if episode_limit is reached
+        # 如果达到episode_limit，则终止
         info = {}
         self.sum_rewards += reward[0]
         self.steps += 1
@@ -363,7 +364,7 @@ class StagHunt(MultiAgentEnv):
             obs = obs.flatten()
         else:
             obs, _ = self._observe([agent_id])
-        # If the frozen agents are removed, their observation is blank
+        # 如果frozen agents被移除，则它们的观察是空白的
         if self.capture_freezes and self.remove_frozen and self.agents_not_frozen[agent_id, batch] == 0:
             obs *= 0
         return obs
@@ -377,7 +378,7 @@ class StagHunt(MultiAgentEnv):
         # Enqueue all agents
         for a in range(self.n_agents):
             state.append({'type': 'agent', 'pos': self.agents[a, 0], 'avail_actions': [], 'id': a})
-            # check the 4 movement actions for availability
+            # 检查4个运动动作是否可用
             for u in range(self.n_actions - 1):
                 _, c = self._move_actor(self.agents[a, 0, :], u, 0, np.asarray([0], dtype=int_type))
                 state[-1]['avail_actions'].append(0 if c else 1)
@@ -393,7 +394,7 @@ class StagHunt(MultiAgentEnv):
         return state
 
     def get_state(self):
-        # Either return the state as a list of entities...
+        # 要么将状态返回为实体列表...
         if self.state_as_graph:
             return self.state_to_graph(self.get_state_as_graph())
         # ... or return the entire grid
@@ -486,14 +487,23 @@ class StagHunt(MultiAgentEnv):
             for a in range(actors.shape[0]):
                 is_free = False
                 while not is_free:
-                    # Draw actors's position randomly
+                    # 随机绘制actor的位置
                     actors[a, b, 0] = np.random.randint(self.env_max[0]) if row is None else row
                     actors[a, b, 1] = np.random.randint(self.env_max[1]) if col is None else col
-                    # Check if position is valid
+                    # 检查位置是否有效
                     is_free = np.sum(self.grid[b, actors[a, b, 0], actors[a, b, 1], :]) == 0
                 self.grid[b, actors[a, b, 0], actors[a, b, 1], type_id] = 1
 
     def print_grid(self, batch=0, grid=None):
+        """
+        打印游戏世界网格
+        :param batch:
+        :type batch:
+        :param grid:
+        :type grid:
+        :return:
+        :rtype:
+        """
         if grid is None:
             grid = self.grid
         grid = grid[batch, :, :, :].squeeze().copy()
@@ -503,6 +513,13 @@ class StagHunt(MultiAgentEnv):
         print(grid)
 
     def print_agents(self, batch=0):
+        """
+        打印agents
+        :param batch:
+        :type batch:
+        :return:
+        :rtype:
+        """
         obs = np.zeros((self.grid_shape[0], self.grid_shape[1]))
         for a in range(self.n_agents):
             obs[self.agents[a, batch, 0], self.agents[a, batch, 1]] = a + 1
@@ -521,7 +538,7 @@ class StagHunt(MultiAgentEnv):
         return positions
 
     def _move_actor(self, pos: np.ndarray, action: int, batch: int, collision_mask: np.ndarray, move_type=None):
-        # compute hypothetical next position
+        # 计算假设的下一个位置
         new_pos = self._env_bounds(pos + self.actions[action])
         # check for a collision with anything in the collision_mask
         found_at_new_pos = self.grid[batch, new_pos[0], new_pos[1], :]
@@ -536,7 +553,7 @@ class StagHunt(MultiAgentEnv):
         return new_pos, collision
 
     def _is_visible(self, agents, target):
-        """ agents are plural and target is singular. """
+        """ agent是复数，目标是单数"""
         target = target.reshape(1, 2).repeat(agents.shape[0], 0)
         # Determine the Manhattan distance of all agents to the target
         if self.toroidal:
@@ -562,7 +579,7 @@ class StagHunt(MultiAgentEnv):
                         grid[batch, targets[a, batch, 0] + offset, targets[a, batch, 1] + offset, target_id] = marker
 
     def _observe(self, agent_ids):
-        # Compute available actions
+        # 计算可用actions
         if len(agent_ids) == 1:
             avail_all = self.get_avail_agent_actions(agent_ids[0])
         elif len(agent_ids) == 2:
@@ -659,7 +676,7 @@ class StagHunt(MultiAgentEnv):
         grid[:, :, (pos[1] + ashape[1] + 1):, unknown_dim] = unknown_id
 
     def _mask_invisible(self, obs, agent_ids):
-        """ Generates new observations from obs that only contain the visible cone. """
+        """ 从只包含可见锥体的观测值生成新的观测值。 """
         narrow = 1 if self.directed_cone_narrow else 0
         dim = list(obs.shape[:2]) + [2 * i + 1 for i in self.agent_obs] + [self.n_feats]
         obs = np.reshape(obs, tuple(dim))
