@@ -5,9 +5,9 @@ env: "stag_hunt"
 env_args:
     map_name: "stag_hunt"
     capture_action: True
-    n_agents: 8
-    n_stags: 8
-    n_hare: 0
+    n_agents: 8   #多少个猎人
+    n_stags: 8   # 多少头鹿
+    n_hare: 0    #多少个野兔
     miscapture_punishment: 0
     agent_obs: [2, 2]       # (半径-1）的agent的观察，例如，[0，0]
     agent_move_block: [0,1,2]   #agent的行动被哪些实体阻止（0=agent，1=stags，2=hare）

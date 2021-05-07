@@ -233,16 +233,18 @@ def env_worker(remote, env_fn):
     :param remote: eg: <multiprocessing.connection.Connection object at 0x7fc6f40d3dc0>
     :type remote:
     :param env_fn: eg: <runners.parallel_runner.CloudpickleWrapper object at 0x7fc6f828d8e0>
-    :type env_fn:
+    :type env_fn: 是一个functools.partial， 带有env的参数(<function env_fn at 0x7fb9f7eae280>, env=<class 'envs.stag_hunt.stag_hunt.StagHunt'>, map_name='stag_hunt', capture_action=True, n_agents=8, n_stags=8, n_hare=0, miscapture_punishment=0, agent_obs=[2, 2], agent_move_block=[0, 1, 2], capture_conditions=[0, 1], capture_action_conditions=[2, 1], capture_freezes=True, capture_terminal=False, directed_observations=False, directed_cone_narrow=True, directed_exta_actions=True, episode_limit=200, intersection_global_view=False, intersection_unknown=False, mountain_slope=0.0, mountain_spawn=False, mountain_agent_row=-1, observe_state=False, observe_walls=False, observe_ids=False, observe_one_hot=False, p_stags_rest=0.0, p_hare_rest=0.0, prevent_cannibalism=True, print_caught_prey=False, print_frozen_agents=False, random_ghosts=False, random_ghosts_prob=0.5, random_ghosts_mul=-1, random_ghosts_indicator=False, remove_frozen=True, reward_hare=1, reward_stag=10, reward_collision=0, reward_time=0, state_as_graph=False, toroidal=False, world_shape=[10, 10], seed=675962812)
     :return:
     :rtype:
     """
-    env = env_fn.x()
+    # 每个进程创建一个env，然后一直在while True监听，监听收到的操作请求，对环境进行操作
+    env = env_fn.x()  #创建一个环境
     while True:
+        # 接收进程发过来的指令，eg: cmd: 'get_env_info', data: None, 操作对应的环境
         cmd, data = remote.recv()
         if cmd == "step":
             actions = data
-            # Take a step in the environment
+            # 进行一步操作，对环境采取一个动作
             reward, terminated, env_info = env.step(actions)
             # Return the observations, avail_actions and state to make the next action
             state = env.get_state()

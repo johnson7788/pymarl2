@@ -98,7 +98,7 @@ class StagHunt(MultiAgentEnv):
         self.toroidal = args.toroidal
         shape = args.world_shape
         self.x_max, self.y_max = shape
-        self.state_size = self.x_max * self.y_max * self.n_feats
+        self.state_size = self.x_max * self.y_max * self.n_feats  #eg：state_size： 300
         self.env_max = np.asarray(shape, dtype=int_type)
         self.grid_shape = np.asarray(shape, dtype=int_type)
         self.grid = np.zeros((self.batch_size, self.x_max, self.y_max, self.n_feats), dtype=float_type)
@@ -136,7 +136,7 @@ class StagHunt(MultiAgentEnv):
             # The size of the visible observation cones for this option
             self.obs_size = self.n_feats * (2 * args.agent_obs[0] - 1) * (2 * args.agent_obs[1] - 1)
         else:
-            # The agent-centric observation size
+            # The agent-centric observation size，观察空间的维度eg： 75
             self.obs_size = self.n_feats * (2 * args.agent_obs[0] + 1) * (2 * args.agent_obs[1] + 1)
 
         # 定义episode和奖励
@@ -150,10 +150,11 @@ class StagHunt(MultiAgentEnv):
         self.capture_freezes = getattr(args, "capture_freezes", True)
         self.remove_frozen = getattr(args, "remove_frozen", False)
 
-        # 定义内部状态
+        # 定义内部状态, agents: 猎人,
         self.agents = np.zeros((self.n_agents, self.batch_size, 2), dtype=int_type)
         self.agents_not_frozen = np.ones((self.n_agents, self.batch_size), dtype=int_type)
         self.agents_orientation = np.zeros((self.n_agents, self.batch_size), dtype=int_type)  # use action_labels 0..3
+        # 猎物prey，包括兔子和雄鹿
         self.prey = np.zeros((self.n_prey, self.batch_size, 2), dtype=int_type)
         self.prey_alive = np.zeros((self.n_prey, self.batch_size), dtype=int_type)
         self.prey_type = np.ones((self.n_prey, self.batch_size), dtype=int_type)    # fill with stag (1)
@@ -176,7 +177,7 @@ class StagHunt(MultiAgentEnv):
         # 清除网格
         self.grid.fill(0.0)
 
-        # 将n_agents和n_preys放在网格上
+        # 将n_agents/n_preys放在网格上, 放猎人
         self._place_actors(self.agents, 0, row=self.mountain_agent_row if self.mountain_agent_row>= 0 else None)
         # 放置雄鹿/山羊
         self._place_actors(self.prey[:self.n_stags, :, :], 1, row=0 if self.mountain_spawn else None)

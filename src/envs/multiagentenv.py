@@ -52,6 +52,12 @@ class MultiAgentEnv(object):
         raise NotImplementedError
 
     def get_env_info(self):
+        """
+        返回一些环境的基本信息
+        :return:
+        env_info： {'state_shape': 300, 'obs_shape': 75, 'n_actions': 6, 'n_agents': 8, 'episode_limit': 200}
+        :rtype:
+        """
         env_info = {"state_shape": self.get_state_size(),
                     "obs_shape": self.get_obs_size(),
                     "n_actions": self.get_total_actions(),
