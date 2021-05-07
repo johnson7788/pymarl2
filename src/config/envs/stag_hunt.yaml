@@ -29,27 +29,27 @@ env_args:
 #    n_agents: 2             # 捕猎人数 , i.e., agents
 #    n_hare: 2               # 环境中的野兔数量
 #    n_stags: 1              # 环境中的鹿数量
-    observe_state: False    # whether an observation is only partial (False) or central including agent position (True)
-    observe_walls: False    # observe walls as an extra feature (only for state_as_list=False and toroidal=False)
-    observe_ids: False      # observe agent ID, instead of agent presence (only for state_as_list=False)
-    observe_one_hot: False  # observe agent ID as one-hot vector (only for observer_ids=True)
-    p_stags_rest: 0.0       # probability that a stag will not move (at each time step)
-    p_hare_rest: 0.0        # probability that a hare will not move (at each time step)
-    prevent_cannibalism: True   # If set to False, prey can be captured by other prey (witch is rewarding)
-    print_caught_prey: False    # debug messages about caught prey and finished episodes
-    print_frozen_agents: False  # debug messages about frozen agents after some prey has been caught
-    random_ghosts: False    # If True, prey turns into ghosts randomly (neg. reward), indicated by a corner-feature
-    random_ghosts_prob: 0.5 # Probability that prey turns into ghost
-    random_ghosts_mul: -1   # Catching ghosts incurs a reward/punishment of random_ghost_mul*reward
-    random_ghosts_indicator: False  # If True, the indicator for ghosts is in a different corner every episode
-    remove_frozen: True     # whether frozen agents are removed (True) or still present in the world (False)
-    reward_hare: 1          # reward for capturing a hare
-    reward_stag: 10         # reward for capturing a stag
-    reward_collision: 0     # reward (or punishment) for colliding with other agents
-    reward_time: 0          # reward (or punishment) given at each time step
-    state_as_graph: False   # whether the state is a list of entities (True) or the entire grid (False
-    toroidal: False         # whether the world is bounded (False) or toroidal (True)
-    world_shape: [10, 10]   # the shape of the grid-world [height, width]
+    observe_state: False    # 观察是否只是部分的（False）或包括agent位置的中心（True）。
+    observe_walls: False    # 将墙壁视为额外的特征（仅适用于state_as_list = False和toroidal = False）
+    observe_ids: False      # 观察agent ID，而不是agent存在（仅用于state_as_list = False）
+    observe_one_hot: False  # 观察agentID作为one-hot量向量（仅适用于observer_ids = True）
+    p_stags_rest: 0.0       # 雄鹿不会移动的概率（每个时间步）
+    p_hare_rest: 0.0        # 野兔不会移动的概率（每个时间步）
+    prevent_cannibalism: True   # 如果设置为False，猎物可以被其他猎物捕获（witch是有奖励的）。
+    print_caught_prey: False    # 打印有关捕获猎物和完成episode的调试消息
+    print_frozen_agents: False  # 在捕获一些猎物后，有关冻结agent的调试消息
+    random_ghosts: False    # 如果是 "True"，猎物会随机变成幽灵（否定的奖励），由一个角落的特征来表示
+    random_ghosts_prob: 0.5 # 猎物变成幽灵的概率
+    random_ghosts_mul: -1   # 捕捉幽灵会引发奖励/惩罚random_ghost_mul *reward
+    random_ghosts_indicator: False  # 如果是真的，ghost的指标每个episode都在不同的角落。
+    remove_frozen: True     # 冻结的agent是否被移除（True）或仍然存在于世界中（False）。
+    reward_hare: 1          # 捕获野兔的奖励
+    reward_stag: 10         # 捕获雄鹿的奖励
+    reward_collision: 0     # 与其他agent碰撞的奖励（或惩罚）
+    reward_time: 0          # 每个时间步的奖励（或惩罚）
+    state_as_graph: False   # 状态是一个实体的列表（True）还是整个网格（False）。
+    toroidal: False         # 世界是否有界（False）或环形(True）
+    world_shape: [10, 10]   # 网格世界的形状[高度，宽度]
 
 test_greedy: True
 test_nepisode: 16
