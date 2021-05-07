@@ -240,18 +240,19 @@ def env_worker(remote, env_fn):
     # 每个进程创建一个env，然后一直在while True监听，监听收到的操作请求，对环境进行操作
     env = env_fn.x()  #创建一个环境
     while True:
-        # 接收进程发过来的指令，eg: cmd: 'get_env_info', data: None, 操作对应的环境
+        # 接收进程发过来的指令，eg: cmd: 'get_env_info', data: None, 操作对应的环境,这里的data是传来对agent要操作的action
         cmd, data = remote.recv()
         if cmd == "step":
             actions = data
-            # 进行一步操作，对环境采取一个动作
+            # 进行一步操作，对环境采取一个动作, 例如actions: [2 0 3 0 4 2 4 2]
             reward, terminated, env_info = env.step(actions)
-            # Return the observations, avail_actions and state to make the next action
+            # 获取观察值，avail_actions和state
             state = env.get_state()
             avail_actions = env.get_avail_actions()
             obs = env.get_obs()
+            # 返回操作一个步的agent后的结果
             remote.send({
-                # Data for the next timestep needed to pick an action
+                # 下一个时间步的数据需要选择一个动作
                 "state": state,
                 "avail_actions": avail_actions,
                 "obs": obs,

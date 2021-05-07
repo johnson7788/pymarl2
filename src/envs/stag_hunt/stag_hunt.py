@@ -195,14 +195,14 @@ class StagHunt(MultiAgentEnv):
         return self.get_obs(), self.get_state()
 
     def step(self, actions):
-        """ 在环境中执行action*batch_size个操作。   """
+        """ 在环境中执行action*batch_size个操作。 eg: actions: [2 0 3 0 4 2 4 2], 返回reward, terminated, info """
         if not self.batch_mode:
             actions = np.expand_dims(np.asarray(actions, dtype=int_type), axis=1)
         assert len(actions.shape) == 2 and actions.shape[0] == self.n_agents and actions.shape[1] == self.batch_size, \
             "improper number of agents and/or parallel environments!"
         actions = actions.astype(dtype=int_type)
 
-        # 初始化返回的值和网格
+        # 初始化返回的值和网格eg: reward: [0.], terminated:[False]
         reward = np.ones(self.batch_size, dtype=float_type) * self.time_reward
         terminated = [False for _ in range(self.batch_size)]
 
@@ -214,8 +214,8 @@ class StagHunt(MultiAgentEnv):
                     # Only moves "up" if the mountain permits it (as defined by mountain_slope)
                     if not (np.random.rand() < self.mountain_slope and actions[a, b] == 3):
                         self.agents[a, b, :], collide = self._move_actor(self.agents[a, b, :], actions[a, b], b,
-                                                                         self.agent_move_block, 0)
-                        if collide:
+                                                                       self.agent_move_block, 0)
+                        if collide: #如果有碰撞，把碰撞的奖励也加上去，可能为正或负
                             reward[b] = reward[b] + self.collision_reward
                     # Set the agent's orientation (if the observation depends on it)
                     if self.directed_observations:
@@ -539,16 +539,16 @@ class StagHunt(MultiAgentEnv):
         return positions
 
     def _move_actor(self, pos: np.ndarray, action: int, batch: int, collision_mask: np.ndarray, move_type=None):
-        # 计算假设的下一个位置
+        # 计算下一个位置,pos: [0 7], action: 4, batch: 0  collision_mask: [0 1 2]，哪些位置是不让走的
         new_pos = self._env_bounds(pos + self.actions[action])
-        # check for a collision with anything in the collision_mask
+        # 检查碰撞中的任何内容碰撞
         found_at_new_pos = self.grid[batch, new_pos[0], new_pos[1], :]
         collision = np.sum(found_at_new_pos[collision_mask]) > 0
         if collision:
             # No change in position
             new_pos = pos
         elif move_type is not None:
-            # change the agent's state and position on the grid
+            #更改agent的状态和网格上的位置
             self.grid[batch, pos[0], pos[1], move_type] = 0
             self.grid[batch, new_pos[0], new_pos[1], move_type] = 1
         return new_pos, collision
